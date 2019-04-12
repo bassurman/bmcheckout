@@ -1,10 +1,50 @@
 <?php
 class Billmate_Checkout_Helper_Data extends Mage_Core_Helper_Abstract
 {
-
     const BM_CHECKOUT_ENABLED_PATH = 'payment/bmcheckout/enable';
 
+    const BM_CHECKOUT_TAX_CLASS_PATH = 'payment/bmcheckout/tax_class';
+
+    const BM_CHECKOUT_TERMS_PAGE_PATH = 'payment/bmcheckout/terms_page';
+
+    const BM_CHECKOUT_ORDER_STATUS_PATH = 'payment/bmcheckout/order_status';
+
+    const BM_CHECKOUT_PRIVACY_POLICY_PATH = 'payment/bmcheckout/privacy_policy_page';
+
+    const BM_CHECKOUT_SHIPPING_METHOD_PATH = 'payment/bmcheckout/shipping_method';
+
+    const GENERAL_COUNTRY_ID_PATH = 'general/country/default';
+
+    const GENERAL_SIPPING_POSTCODE_PATH = 'shipping/origin/postcode';
+
     const BM_CHECKOUT_LOG_FILE = 'bm_connection.log';
+
+    const DEF_POST_CODE = '12345';
+
+    /**
+     * @var array
+     */
+    protected $bundleArr = array();
+
+    /**
+     * @var int
+     */
+    protected $totalValue = 0;
+
+    /**
+     * @var int
+     */
+    protected $totalTax = 0;
+
+    /**
+     * @var array
+     */
+    protected $discounts = array();
+
+    /**
+     * @var array
+     */
+    protected $shippingRatesCodes = [];
 
     /**
      * @var
@@ -54,7 +94,7 @@ class Billmate_Checkout_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function getDefaultPostcode()
     {
-        $postCode = Mage::getStoreConfig('shipping/origin/postcode');
+        $postCode = $this->getConfigValue(self::GENERAL_SIPPING_POSTCODE_PATH);
         if ($postCode) {
             return $postCode;
         }
@@ -62,11 +102,19 @@ class Billmate_Checkout_Helper_Data extends Mage_Core_Helper_Abstract
     }
 
     /**
-     * @return string
+     * @return int
      */
     public function getContryId()
     {
-        return  Mage::getStoreConfig('general/country/default');
+        return $this->getConfigValue(self::GENERAL_COUNTRY_ID_PATH);
+    }
+
+    /**
+     * @return int
+     */
+    public function getCheckoutTaxClass()
+    {
+        return (int)$this->getConfigValue(self::BM_CHECKOUT_TAX_CLASS_PATH);
     }
 
     /**
@@ -74,70 +122,13 @@ class Billmate_Checkout_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function getDefaultShipping()
     {
-        $shippingMethodCode = Mage::getStoreConfig('billmate/checkout/shipping_method');
+        $shippingMethodCode = $this->getConfigValue(self::BM_CHECKOUT_SHIPPING_METHOD_PATH);
         $allowedShippingMethods = $this->getAllowedShippingMethods();
         if (!in_array($shippingMethodCode, $allowedShippingMethods)) {
             return current($allowedShippingMethods);
         }
         return $shippingMethodCode;
     }
-
-    /**
-     * @return array
-     */
-    protected function getAllowedShippingMethods()
-    {
-        $checkoutSession = Mage::getSingleton('checkout/session');
-        $shippingAddress = $checkoutSession->getQuote()->getShippingAddress();
-
-        $shippingRates = $shippingAddress
-            ->setCollectShippingRates(true)
-            ->collectShippingRates()
-            ->getAllShippingRates();
-
-        foreach ($shippingRates as $rate) {
-            $this->shippingRatesCodes[] = $rate->getCode();
-        }
-
-        return $this->shippingRatesCodes;
-    }
-
-    /**
-     * @param        $amount
-     * @param string $thousand
-     * @param string $decimal
-     *
-     * @return mixed|string
-     */
-	public function replaceSeparator($amount, $thousand = '.', $decimal = ',')
-    {
-		return $this->convert2Decimal($amount);
-	}
-
-    /**
-     * @param $amount
-     *
-     * @return mixed|string
-     */
-	public function convert2Decimal($amount)
-    {
-		if( empty( $amount)) {
-			return '';
-		}
-		$dotPosition = strpos($amount, '.');
-		$CommaPosition = strpos($amount, ',');
-		if( $dotPosition > $CommaPosition ){
-			return str_replace(',', '', $amount);
-		}else{
-			$data = explode(',', $amount);
-			$data[1] = empty($data[1])?'':$data[1];
-			$data[0] = empty($data[0])?'':$data[0];
-			$p = str_replace( '.' ,'', $data[0]);
-			return $p.'.'.$data[1];
-		}
-	}
-
-
 
     /**
      * @return bool
@@ -164,7 +155,7 @@ class Billmate_Checkout_Helper_Data extends Mage_Core_Helper_Abstract
         $rateRequest = $calc->getRateRequest(
             $address, $address, $taxClassId, $store
         );
-        $taxClass = (int) Mage::getStoreConfig('payment/billmatecheckout/tax_class');;
+        $taxClass = $this->getCheckoutTaxClass();
         $rateRequest->setProductClassId($taxClass);
         $rate = $calc->getRate($rateRequest);
         //Get the vat display options for products from Magento tax settings
@@ -200,6 +191,62 @@ class Billmate_Checkout_Helper_Data extends Mage_Core_Helper_Abstract
             'rate' => $rate
         );
     }
+
+    /**
+     * @return array
+     */
+    protected function getAllowedShippingMethods()
+    {
+        $checkoutSession = Mage::getSingleton('checkout/session');
+        $shippingAddress = $checkoutSession->getQuote()->getShippingAddress();
+
+        $shippingRates = $shippingAddress
+            ->setCollectShippingRates(true)
+            ->collectShippingRates()
+            ->getAllShippingRates();
+
+        foreach ($shippingRates as $rate) {
+            $this->shippingRatesCodes[] = $rate->getCode();
+        }
+
+        return $this->shippingRatesCodes;
+    }
+
+    /**
+     * @param        $amount
+     * @param string $thousand
+     * @param string $decimal
+     *
+     * @return mixed|string
+     */
+    public function replaceSeparator($amount)
+    {
+        return $this->convert2Decimal($amount);
+    }
+
+    /**
+     * @param $amount
+     *
+     * @return mixed|string
+     */
+    public function convert2Decimal($amount)
+    {
+        if( empty( $amount)) {
+            return '';
+        }
+        $dotPosition = strpos($amount, '.');
+        $CommaPosition = strpos($amount, ',');
+        if( $dotPosition > $CommaPosition ){
+            return str_replace(',', '', $amount);
+        }else{
+            $data = explode(',', $amount);
+            $data[1] = empty($data[1])?'':$data[1];
+            $data[0] = empty($data[0])?'':$data[0];
+            $p = str_replace( '.' ,'', $data[0]);
+            return $p.'.'.$data[1];
+        }
+    }
+
     /**
      * Try to calculate the value of the invoice fee with the base currency
      * of the store if the purchase was done with a different currency.
@@ -214,19 +261,6 @@ class Billmate_Checkout_Helper_Data extends Mage_Core_Helper_Abstract
         $currentCurrencyCode = Mage::app()->getStore()->getCurrentCurrencyCode();
 		$value = Mage::helper('directory')->currencyConvert($value,$baseCurrencyCode,$currentCurrencyCode);
 	    return $value;
-    }
-
-    /**
-     * @param $store
-     *
-     * @return int
-     */
-	public function getInvoiceTaxClass($store)
-    {
-        return (int)Mage::getStoreConfig(
-            'payment/billmatecheckout/tax_class',
-            $store
-        );
     }
 
     /**
@@ -249,40 +283,6 @@ class Billmate_Checkout_Helper_Data extends Mage_Core_Helper_Abstract
         $storeId = Mage::app()->getStore($store)->getId();
         $this->_InvoicePriceIncludesTax[$storeId] = true;
         return $this->_InvoicePriceIncludesTax[$storeId];
-    }
-
-    /**
-     * @param      $price
-     * @param null $includingTax
-     * @param null $shippingAddress
-     * @param null $ctc
-     * @param null $store
-     *
-     * @return float
-     */
-    public function getInvoicePrice($price, $includingTax = null, $shippingAddress = null, $ctc = null, $store = null)
-    {
-        $billingAddress = false;
-        if ($shippingAddress && $shippingAddress->getQuote() && $shippingAddress->getQuote()->getBillingAddress()) {
-            $billingAddress = $shippingAddress->getQuote()->getBillingAddress();
-        }
-        
-        $calc = Mage::getSingleton('tax/calculation');
-        $taxRequest = $calc->getRateRequest(
-            $shippingAddress,
-            $billingAddress,
-            $shippingAddress->getQuote()->getCustomerTaxClassId(),
-            $store
-        );
-        $taxRequest->setProductClassId($this->getInvoiceTaxClass($store));
-        $rate = $calc->getRate($taxRequest);
-        $tax = $calc->calcTaxAmount($price, $rate, $this->InvoicePriceIncludesTax($store), true);
-        
-        if ($this->InvoicePriceIncludesTax($store)) {
-            return $includingTax ? $price : $price - $tax;
-        } else {
-            return $includingTax ? $price + $tax : $price;
-        }
     }
 
     /**
@@ -328,83 +328,6 @@ class Billmate_Checkout_Helper_Data extends Mage_Core_Helper_Abstract
         return $this->connectionHelper->isPushEvents();
     }
 
-    const DEF_POST_CODE = '12345';
-
-    /**
-     * @var array
-     */
-    protected $bundleArr = array();
-
-    /**
-     * @var int
-     */
-    protected $totalValue = 0;
-
-    /**
-     * @var int
-     */
-    protected $totalTax = 0;
-
-    /**
-     * @var array
-     */
-    protected $discounts = array();
-
-    /**
-     * @var array
-     */
-    protected $paymentMethodMap = [
-        1 => 'billmateinvoice',
-        4 => 'billmatepartpayment',
-        8 => 'billmatecardpay',
-        16 => 'billmatebankpay'
-    ];
-
-    /**
-     * @var array
-     */
-    protected $shippingRatesCodes = [];
-
-    /**
-     * @param $eid
-     * @param $secret
-     *
-     * @return bool
-     */
-    public function verifyCredentials($eid,$secret)
-    {
-        $billmate = new Billmate_Billmate($eid, $secret, true, false,false);
-
-        $additionalinfo['PaymentData'] = array(
-            "currency"=> 'SEK',//SEK
-            "country"=> 'se',//Sweden
-            "language"=> 'sv',//Swedish
-        );
-
-        $result = $billmate->GetPaymentPlans($additionalinfo);
-        if(isset($result['code']) && $result['code'] == '9013'){
-            return false;
-        }
-        return true;
-
-    }
-
-    /**
-     * @param $pno
-     *
-     * @return mixed
-     */
-    public function getAddress($pno)
-    {
-        $billmate = $this->getBillmate();
-
-        $values = array(
-            'pno' => $pno
-        );
-
-        return $billmate->getAddress($values);
-    }
-
     /**
      * @param $quote
      *
@@ -412,134 +335,7 @@ class Billmate_Checkout_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function prepareArticles($quote)
     {
-        $bundleArr     = array();
-        $totalValue    = 0;
-        $totalTax      = 0;
-        $discountAdded = false;
-        $configSku     = false;
-        $discounts     = array();
-        foreach ($quote->getAllItems() as $_item) {
-            if (in_array($_item->getParentItemId(), $bundleArr)) {
-                continue;
-            }
-
-            if ($_item->getProductType() == 'bundle' && $_item->getProduct()->getPriceType() == 1) {
-                $bundleArr[] = $_item->getId();
-            }
-
-            if ($_item->getProductType() == 'configurable') {
-                $configSku = $_item->getSku();
-                $cp = $_item->getProduct();
-                $sp = Mage::getModel('catalog/product')->loadByAttribute('sku', $_item->getSku());
-
-                $price = $_item->getCalculationPrice();
-                $percent = $_item->getTaxPercent();
-
-                $discount = 0.0;
-                $discountAmount = 0;
-
-                $total = ($discountAdded) ? (int)round((($price * $_item->getQty() - $discountAmount) * 100)) : (int)round($price * 100) * $_item->getQty();
-                $article[] = array(
-                    'quantity' => (int)$_item->getQty(),
-                    'artnr' => $_item->getProduct()->getSKU(),
-                    'title' => addslashes($cp->getName() . ' - ' . $sp->getName()),
-                    'aprice' => (int)round($price * 100, 0),
-                    'taxrate' => (float)$percent,
-                    'discount' => $discount,
-                    'withouttax' => $total
-                );
-
-                $temp = $total;
-                $totalValue += $temp;
-                $totalTax += $temp * ($percent / 100);
-                if (isset($discounts[$percent])) {
-                    $discounts[$percent] += $temp;
-                } else {
-                    $discounts[$percent] = $temp;
-                }
-
-            }
-            if ($_item->getSku() == $configSku) {
-                continue;
-            }
-
-            if ($_item->getProductType() == 'bundle' && $_item->getProduct()->getPriceType() == 0) {
-
-                $percent = $_item->getTaxPercent();
-                $article[] = array(
-                    'quantity' => (int)$_item->getQty(),
-                    'artnr' => $_item->getProduct()->getSKU(),
-                    'title' => addslashes($_item->getName()),
-                    // Dynamic pricing set price to zero
-                    'aprice' => (int)0,
-                    'taxrate' => (float)$percent,
-                    'discount' => 0.0,
-                    'withouttax' => (int)0
-
-                );
-            } else {
-                $percent = $_item->getTaxPercent();
-                $price = $_item->getCalculationPrice();
-                $discount = 0.0;
-                $discountAmount = 0;
-                $parentItem = $_item->getParentItem();
-                if ($parentItem) {
-                    $qty = $parentItem->getQty();
-                } else {
-                    $qty = $_item->getQty();
-                }
-
-                $total = ($discountAdded) ? (int)round((($price * $qty - $discountAmount) * 100)) : (int)round($price * 100) * $qty;
-                $article[] = array(
-                    'quantity' => (int)$qty,
-                    'artnr' => $_item->getProduct()->getSKU(),
-                    'title' => addslashes($_item->getName()),
-                    'aprice' => (int)round($price * 100, 0),
-                    'taxrate' => (float)$percent,
-                    'discount' => $discount,
-                    'withouttax' => $total
-
-                );
-                $temp = $total;
-                $totalValue += $temp;
-                $totalTax += $temp * ($percent / 100);
-                if (isset($discounts[$percent])) {
-                    $discounts[$percent] += $temp;
-                } else {
-                    $discounts[$percent] = $temp;
-                }
-            }
-        }
-        $totals = $quote->getTotals();
-
-        if (isset($totals['discount'])) {
-            foreach ($discounts as $percent => $amount)
-            {
-                $discountPercent           = $amount / $totalValue;
-                $floor                     = 1 + ($percent / 100);
-                $marginal                  = 1 / $floor;
-                $discountAmount            = $discountPercent * $totals['discount']->getValue();
-                $article[] = array(
-                    'quantity'   => (int) 1,
-                    'artnr'      => 'discount',
-                    'title'      => Mage::helper('payment')->__('Discount') . ' ' . $this->__('%s Vat', $percent),
-                    'aprice'     => round(($discountAmount * $marginal) * 100),
-                    'taxrate'    => (float) $percent,
-                    'discount'   => 0.0,
-                    'withouttax' => round(($discountAmount * $marginal) * 100),
-
-                );
-                $totalValue                += (1 * round($discountAmount * $marginal * 100));
-                $totalTax                  += (1 * round(($discountAmount * $marginal) * 100) * ($percent / 100));
-            }
-        }
-
-        return array(
-            'articles' => $article,
-            'totalValue' => $totalValue,
-            'totalTax' => $totalTax,
-            'discounts' => $discounts
-        );
+        return $this->connectionHelper->prepareArticles($quote);
     }
 
     /**
@@ -547,7 +343,7 @@ class Billmate_Checkout_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function getTermsUrl()
     {
-        $termsPageId = Mage::getStoreConfig('billmate/checkout/terms_page');
+        $termsPageId = $this->getConfigValue(self::BM_CHECKOUT_TERMS_PAGE_PATH);
         $termPageUrl = Mage::helper('cms/page')->getPageUrl($termsPageId);
         return $termPageUrl;
     }
@@ -557,7 +353,7 @@ class Billmate_Checkout_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function getPrivacyUrl()
     {
-        $privacyPolicyPageId = Mage::getStoreConfig('billmate/checkout/privacy_policy_page');
+        $privacyPolicyPageId = $this->getConfigValue(self::BM_CHECKOUT_PRIVACY_POLICY_PATH);
         $privacyPolicyPageUrl= Mage::helper('cms/page')->getPageUrl($privacyPolicyPageId);
         return $privacyPolicyPageUrl;
     }
@@ -586,7 +382,7 @@ class Billmate_Checkout_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function getBillmateCheckoutOrderStatus()
     {
-        return Mage::getStoreConfig('payment/billmatecheckout/order_status');
+        return $this->getConfigValue(self::BM_CHECKOUT_ORDER_STATUS_PATH);
     }
 
     /**
@@ -595,5 +391,13 @@ class Billmate_Checkout_Helper_Data extends Mage_Core_Helper_Abstract
     public function addLog($message)
     {
        $this->connectionHelper->addLog($message, self::BM_CHECKOUT_LOG_FILE);
+    }
+
+    /**
+     * @return string | null
+     */
+    public function getBillmateHash()
+    {
+        return Mage::getSingleton('checkout/session')->getBillmateHash();
     }
 }

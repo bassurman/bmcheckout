@@ -82,6 +82,32 @@
         </layout>
     </adminhtml>
     <frontend>
+        <events>
+            <!--<controller_action_predispatch_firecheckout_index_index>
+                <observers>
+                    <billmate_firecheckout_index>
+                        <class>Billmate_Common_Model_Observer</class>
+                        <method>redirectToCancelUrl</method>
+                    </billmate_firecheckout_index>
+                </observers>
+            </controller_action_predispatch_firecheckout_index_index>
+            <controller_action_predispatch_checkout_onepage_index>
+                <observers>
+                    <billmate_onepagecheckout_index>
+                        <class>Billmate_Common_Model_Observer</class>
+                        <method>redirectToCancelUrl</method>
+                    </billmate_onepagecheckout_index>
+                </observers>
+            </controller_action_predispatch_checkout_onepage_index>-->
+            <sales_order_place_after>
+                <observers>
+                    <billmate_common_clearHash>
+                        <class>Billmate_Checkout_Model_Observer</class>
+                        <method>salesOrderPlaceAfter</method>
+                    </billmate_common_clearHash>
+                </observers>
+            </sales_order_place_after>
+        </events>
         <routers>
             <billmatecheckout>
                 <use>standard</use>

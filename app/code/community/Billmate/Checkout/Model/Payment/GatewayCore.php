@@ -164,7 +164,7 @@ class Billmate_Checkout_Model_Payment_GatewayCore extends Varien_Object
     public function getQuote()
     {
         if (is_null($this->quote)) {
-            $this->quote = Mage::getSingleton( 'checkout/session' )->getQuote();
+            $this->quote = $this->getCheckoutSession()->getQuote();
         }
         return $this->quote;
     }
@@ -191,5 +191,21 @@ class Billmate_Checkout_Model_Payment_GatewayCore extends Varien_Object
     public function getBMConnection()
     {
         return $this->helper->getBillmate();
+    }
+
+    /**
+     * @return Billmate_Checkout_Helper_Data
+     */
+    public function getHelper()
+    {
+        return $this->helper;
+    }
+
+    /**
+     * @return Mage_Checkout_Model_Session
+     */
+    protected function getCheckoutSession()
+    {
+        return Mage::getSingleton('checkout/session');
     }
 }

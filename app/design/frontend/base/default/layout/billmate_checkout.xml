@@ -10,27 +10,7 @@
             <block type="bmcheckout/confirmation" name="billmatecheckout.confirmation" as="confirmaion"/>
         </reference>
     </billmatecheckout_index_confirmation>
-    <checkout_cart_index>
-        <!--<update handle="billmatecheckout_replace_checkout_links"/>-->
-    </checkout_cart_index>
-    <billmatecheckout_replace_checkout_links>
-        <reference name="checkout.cart.top_methods">
-            <action method="unsetChild" ifconfig="billmate/checkout/active"><name>checkout.cart.methods.onepage</name></action>
-            <action method="unsetChild" ifconfig="billmate/checkout/active"><name>checkout.cart.methods.onepage.top</name></action>
-            <action method="unsetChild" ifconfig="billmate/checkout/active"><name>checkout.cart.methods.fire</name></action>
-        </reference>
-        <reference name="checkout.cart.methods">
-            <action method="unsetChild" ifconfig="billmate/checkout/active"><name>checkout.cart.methods.onepage</name></action>
-            <action method="unsetChild" ifconfig="billmate/checkout/active"><name>checkout.cart.methods.onepage.bottom</name></action>
-            <action method="unsetChild" ifconfig="billmate/checkout/active"><name>checkout.cart.methods.fire</name></action>
-        </reference>
-        <reference name="checkout.cart.top_methods">
-            <block type="bmcheckout/checkout_link" name="checkout.cart.methods.billmate" template="billmatecheckout/link.phtml"/>
-        </reference>
-        <reference name="checkout.cart.methods">
-            <block type="bmcheckout/checkout_link" name="checkout.cart.methods.billmate" template="billmatecheckout/link.phtml" before="checkout.cart.methods.multishipping"/>
-        </reference>
-    </billmatecheckout_replace_checkout_links>
+
     <billmatecheckout_index_terms>
         <reference name="root">
             <action method="setTemplate">
@@ -128,14 +108,7 @@
             <remove name="right.poll"/>
             <remove name="right.reports.product.viewed"/>
             <remove name="right.reports.product.compared"/>
-            <!--<block type="checkout/cart_sidebar" name="cart_sidebar" template="checkout/cart/sidebar.phtml" before="-">
-                <action method="addItemRender"><type>simple</type><block>checkout/cart_item_renderer</block><template>checkout/cart/sidebar/default.phtml</template></action>
-                <action method="addItemRender"><type>grouped</type><block>checkout/cart_item_renderer_grouped</block><template>checkout/cart/sidebar/default.phtml</template></action>
-                <action method="addItemRender"><type>configurable</type><block>checkout/cart_item_renderer_configurable</block><template>checkout/cart/sidebar/default.phtml</template></action>
-                <block type="core/text_list" name="cart_sidebar.extra_actions" as="extra_actions" translate="label" module="checkout">
-                    <label>Shopping Cart Sidebar Extra Actions</label>
-                </block>
-            </block>-->
+
             <block type="checkout/cart" name="checkout.cart">
                 <action method="setCartTemplate">
                     <value>billmatecheckout/cart.phtml</value>

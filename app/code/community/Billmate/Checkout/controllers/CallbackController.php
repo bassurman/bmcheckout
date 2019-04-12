@@ -1,6 +1,6 @@
 <?php
-require_once ('BillmatecheckoutController.php');
-class Billmate_Checkout_CallbackController extends Billmate_Checkout_BillmatecheckoutController
+require_once ('IndexController.php');
+class Billmate_Checkout_CallbackController extends Billmate_Checkout_IndexController
 {
 
     public function callbackAction()

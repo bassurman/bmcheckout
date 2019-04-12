@@ -7,7 +7,7 @@ class Billmate_Common_Helper_Url extends Mage_Checkout_Helper_Url
      */
     public function isBMCheckoutActive()
     {
-        return (bool)Mage::getStoreConfig("billmate/checkout/active");
+        return (bool)Mage::getStoreConfig('billmate/checkout/active');
     }
 
     /**

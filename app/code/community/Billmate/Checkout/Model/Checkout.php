@@ -4,6 +4,54 @@ class Billmate_Checkout_Model_Checkout extends Billmate_Checkout_Model_Payment_G
 {
     const METHOD_CODE = 93;
 
+    public function getBmIframeUrl()
+    {
+        $billmateHash = $this->getHelper()->getBillmateHash();
+        try {
+            if (!$billmateHash) {
+                $bmResponse = $this->init();
+                if (isset($bmResponse['code'])) {
+                    throw new Exception(
+                        $bmResponse['message']
+                    );
+                }
+                $this->getCheckoutSession()->setBillmateInvoiceId($bmResponse['number']);
+                $bmIframeUrl = $bmResponse['url'];
+            } else {
+                $bmConnection = $this->getBMConnection();
+                $bmResponse = $bmConnection->getCheckout(
+                    ['PaymentData' => ['hash' => $billmateHash]]
+                );
+                $quote = $this->getCheckoutSession()->getQuote();
+                $total = $quote->getGrandTotal() * 100;
+
+                if (isset($bmResponse['code'])) {
+                    throw new Exception(
+                        $bmResponse['message']
+                    );
+                }
+
+                if (
+                    isset($bmResponse['Cart']['Total']['withtax'])
+                    && $bmResponse['Cart']['Total']['withtax'] != $total
+                ) {
+                    $updateResponse = $this->updateCheckout();
+                    if (!isset($updateResponse['data']['code'])) {
+                        $bmResponse = $bmConnection->getCheckout(
+                            ['PaymentData' => ['hash' => $billmateHash]]
+                        );
+                    }
+                }
+
+                $bmIframeUrl = $bmResponse['PaymentData']['url'];
+            }
+        }catch (Exception $e) {
+            $this->getCheckoutSession()->addError($e->getMessage());
+            $bmIframeUrl = '';
+        }
+        return $bmIframeUrl;
+    }
+
     /**
      * @return array
      */
@@ -170,5 +218,13 @@ class Billmate_Checkout_Model_Checkout extends Billmate_Checkout_Model_Payment_G
             ])
         ];
         return $urls;
+    }
+
+    /**
+     * @return Mage_Core_Model_Message_Collection
+     */
+    public function getMessages()
+    {
+        return $this->getCheckoutSession()->getMessages(true);
     }
 }

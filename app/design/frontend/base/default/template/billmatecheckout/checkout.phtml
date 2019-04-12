@@ -1,12 +1,10 @@
 <?php
+
 /**
- * Created by PhpStorm.
- * User: Boxedsolutions
- * Date: 2016-09-26
- * Time: 11:59
+ * @var $this Billmate_Checkout_Block_Checkout
  */
 
-$checkout = $this->getCheckoutUrl();
+$bmIframeUrl = $this->getBmIframeUrl();
 ?>
 <?php echo $this->getChildHtml('checkout.cart'); ?>
 <script>
@@ -21,12 +19,12 @@ $checkout = $this->getCheckoutUrl();
 <div id="checkout-loader">
     <div class="img-loader"></div>
 </div>
-<?php if(count(Mage::getSingleton('checkout/cart')->getQuote()->getAllVisibleItems()) > 0 ) : ?>
-
+<div class="messages">
+    <?php echo $this->getMessagesBlock() ?>
+</div>
 <div id="checkoutdiv">
-    <iframe id="checkout" src="<?php echo $checkout; ?>" style="width: 100%; min-height: 800px; border:none;" sandbox="allow-same-origin allow-scripts allow-modals allow-popups allow-forms allow-top-navigation"></iframe>
+    <iframe id="checkout" src="<?php echo $bmIframeUrl; ?>" style="width: 100%; min-height: 800px; border:none;" sandbox="allow-same-origin allow-scripts allow-modals allow-popups allow-forms allow-top-navigation"></iframe>
     <div class="billmateoverlay"></div>
     <div class="billmateloading"></div>
 </div>
-<?php endif ?>
 

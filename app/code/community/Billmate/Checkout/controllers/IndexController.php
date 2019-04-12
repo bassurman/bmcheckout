@@ -19,8 +19,10 @@ class Billmate_Checkout_IndexController extends Mage_Core_Controller_Front_Actio
         }
 
         $quote = $this->_getQuote();
-        if (!$quote->isVirtual() && (!$quote->getShippingAddress()->getCountry()
-                || !$quote->getShippingAddress()->getShippingMethod())) {
+        if (
+            !$quote->isVirtual() && (!$quote->getShippingAddress()->getCountry()
+            || !$quote->getShippingAddress()->getShippingMethod())
+        ) {
 
             $quote->getShippingAddress()->addData([
                 'postcode' => $this->getHelper()->getDefaultPostcode(),
@@ -75,17 +77,14 @@ class Billmate_Checkout_IndexController extends Mage_Core_Controller_Front_Actio
         $this->renderLayout();
     }
 
-    public function updatequoteAction()
-    {
-        // Set shipping and billing on quote.
-    }
-
     public function updateaddressAction()
     {
         $cart = $this->_getCart();
 
         $connection = $this->getHelper()->getBillmate();
-        $result = $connection->getCheckout(array('PaymentData' => array('hash' => Mage::getSingleton('checkout/session')->getBillmateHash())));
+        $result = $connection->getCheckout(
+            array('PaymentData' => array('hash' => Mage::getSingleton('checkout/session')->getBillmateHash()))
+        );
         if(!isset($result['code'])) {
 
             $billingAddress = $cart->getQuote()->getBillingAddress();

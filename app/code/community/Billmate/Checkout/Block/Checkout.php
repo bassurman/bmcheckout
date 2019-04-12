@@ -3,31 +3,55 @@
 class Billmate_Checkout_Block_Checkout extends Mage_Core_Block_Template
 {
     /**
+     * @var false|Billmate_Checkout_Model_Checkout
+     */
+    protected $bmCheckoutModel;
+
+    public function __construct(array $args = array())
+    {
+        parent::__construct($args);
+        $this->bmCheckoutModel = Mage::getModel('bmcheckout/checkout');
+    }
+
+    /**
      * @return string
      */
-    public function getCheckoutUrl()
+    public function getBmIframeUrl()
     {
-        if (Mage::getSingleton('checkout/session')->getBillmateHash()) {
-            $billmate = Mage::helper('bmcheckout')->getBillmate();
-            $checkout = $billmate->getCheckout(array('PaymentData' => array('hash' => Mage::getSingleton('checkout/session')->getBillmateHash())));
-            $quote = Mage::getSingleton('checkout/session')->getQuote();
-            $total = $quote->getGrandTotal();
-            if ($checkout['Cart']['Total']['withtax'] != $total) {
-                $result = Mage::getModel('bmcheckout/checkout')->updateCheckout();
-                if(!isset($result['data']['code'])){
-                    $checkout = $billmate->getCheckout(array('PaymentData' => array('hash' => Mage::getSingleton('checkout/session')->getBillmateHash())));
-                }
-            }
-            if(!isset($checkout['code'])){
-                return $checkout['PaymentData']['url'];
-            }
-        } else {
-            $checkout = Mage::getModel('bmcheckout/checkout')->init();
-            Mage::getSingleton('checkout/session')->setBillmateInvoiceId($checkout['number']);
-            Mage::log('checkout'.print_r($checkout,true));
-            if(!isset($checkout['code'])){
-                return $checkout['url'];
-            }
+        return $this->getBmCheckoutModel()->getBmIframeUrl();
+    }
+
+    /**
+     * @return string
+     */
+    public function getMessagesBlock()
+    {
+        $messages = $this->getBmCheckoutModel()->getMessages();
+        $messageBlock = $this->getLayoutBlockMessage();
+
+        foreach ($messages->getItems() as $_message) {
+            $messageBlock->addMessage($_message);
         }
+
+        return $messageBlock->toHtml();
+    }
+
+    /**
+     * @return Mage_Core_Block_Messages
+     */
+    protected function getLayoutBlockMessage()
+    {
+        $messageBlock = $this->getLayout()->createBlock(
+            'core/messages','billmate_messages'
+        );
+        return $messageBlock;
+    }
+
+    /**
+     * @return Billmate_Checkout_Model_Checkout|false
+     */
+    public function getBmCheckoutModel()
+    {
+        return $this->bmCheckoutModel;
     }
 }

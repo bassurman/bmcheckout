@@ -21,7 +21,7 @@ class Billmate_Checkout_OnepageController extends Mage_Checkout_OnepageControlle
     public function indexAction()
     {
         if ($this->getHelper()->isBMCheckoutActive()) {
-            return $this->_redirect('billmatecheckout', array('_secure'=>true));
+            return $this->_forward('index','index','billmatecheckout');
         }
         parent::indexAction();
     }
