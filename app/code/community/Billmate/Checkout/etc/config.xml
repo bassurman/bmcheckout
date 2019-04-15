@@ -49,7 +49,7 @@
                 <default_shipping_method>freeshipping_freeshipping</default_shipping_method>
                 <terms_page>6</terms_page>
                 <privacy_policy_page>6</privacy_policy_page>
-                <show_cart_side>left_side</show_cart_side>
+                <show_cart_side>0</show_cart_side>
                 <model>bmcheckout/methods_bmcheckout</model>
                 <countries>SE,DE,NL</countries>
                 <order_status>pending</order_status>

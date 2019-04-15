@@ -7,8 +7,8 @@ class Billmate_Checkout_Model_Adminhtml_System_Config_Source_Showside
     public function toOptionArray()
     {
         $options = [
-          'left_side' => $this->getHelper()->__('Left Side'),
-          'right_side' => $this->getHelper()->__('Right Side')
+          '0' => $this->getHelper()->__('Left Side'),
+          '1' => $this->getHelper()->__('Right Side')
         ];
         return $options;
     }
