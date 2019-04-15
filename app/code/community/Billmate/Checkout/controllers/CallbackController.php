@@ -25,7 +25,7 @@ class Billmate_Checkout_CallbackController extends Billmate_Checkout_IndexContro
             $this->runCallbackProcess($bmRequestData);
         } catch (Exception $e) {
              Mage::getSingleton('core/session')->addError($e->getMessage());
-             $this->getResponse()->setRedirect(Mage::helper('billmatecommon/url')->getCheckoutUrl());
+             $this->getResponse()->setRedirect(Mage::helper('bmcheckout/url')->getCheckoutUrl());
              return;
         }
 
@@ -63,10 +63,8 @@ class Billmate_Checkout_CallbackController extends Billmate_Checkout_IndexContro
             }
         } catch (Exception $e) {
             Mage::getSingleton('core/session')->addError($e->getMessage());
-            $this->getResponse()->setRedirect(Mage::helper('billmatecommon/url')->getCheckoutUrl());
-            return;
         }
-        $this->getResponse()->setRedirect(Mage::helper('billmatecommon/url')->getCheckoutUrl());
+        $this->getResponse()->setRedirect(Mage::helper('bmcheckout/url')->getCheckoutUrl());
     }
 
 

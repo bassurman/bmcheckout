@@ -1,6 +1,6 @@
 <?php
 
-class Billmate_Common_Helper_Url extends Mage_Checkout_Helper_Url
+class Billmate_Checkout_Helper_Url extends Mage_Checkout_Helper_Url
 {
     /**
      * @return bool
