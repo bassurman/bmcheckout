@@ -1,6 +1,4 @@
-/**
- * Created by Boxedsolutions on 2016-12-07.
- */
+
 window.method = null;
 window.address_selected = null;
 window.latestScroll = null;
