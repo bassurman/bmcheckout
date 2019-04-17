@@ -54,4 +54,24 @@ class Billmate_Checkout_Block_Checkout extends Mage_Core_Block_Template
     {
         return $this->bmCheckoutModel;
     }
+
+    /**
+     * @return string
+     */
+    public function getJsConfig()
+    {
+        $secureParams = [
+            '_secure' => true
+        ];
+        $configs = [
+           'address_url' => $this->getUrl('billmatecheckout/index/updateaddress',$secureParams),
+           'payment_url' => $this->getUrl('billmatecheckout/index/updatepaymentmethod',$secureParams),
+           'shipping_url' => $this->getUrl('billmatecheckout/index/updateshippingmethod',$secureParams),
+           'order_url' => $this->getUrl('billmatecheckout/index/createorder',$secureParams),
+           'totals_url' => $this->getUrl('billmatecheckout/index/updatetotals',$secureParams),
+           'discount_url' => $this->getUrl('billmatecheckout/index/setdiscount',$secureParams),
+           'checkout_url' => $this->getUrl('billmatecheckout',$secureParams),
+        ];
+        return json_encode($configs);
+    }
 }

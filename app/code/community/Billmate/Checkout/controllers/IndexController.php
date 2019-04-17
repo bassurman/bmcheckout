@@ -184,8 +184,10 @@ class Billmate_Checkout_IndexController extends Mage_Core_Controller_Front_Actio
                 }
             } else {
                 $response['success'] = true;
-                $response['message'] = $this->_getSession()->addSuccess($this->__('Coupon code was canceled.'));
+                $response['message'] = $this->__('Coupon code was canceled.');
             }
+            $checkout = Mage::getModel('bmcheckout/checkout');
+            $checkout->updateCheckout();
 
         } catch (Mage_Core_Exception $e) {
             $response['success'] = false;

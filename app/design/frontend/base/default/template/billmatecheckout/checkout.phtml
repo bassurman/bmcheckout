@@ -7,15 +7,6 @@
 $bmIframeUrl = $this->getBmIframeUrl();
 ?>
 <?php echo $this->getChildHtml('checkout.cart'); ?>
-<script>
-    var UPDATE_ADDRESS_URL = "<?php echo Mage::getUrl('billmatecheckout/index/updateaddress',array('_secure' => true)); ?>";
-    var UPDATE_PAYMENT_METHOD_URL = "<?php echo Mage::getUrl('billmatecheckout/index/updatepaymentmethod',array('_secure' => true)); ?>";
-    var UPDATE_SHIPPING_METHOD_URL = "<?php echo Mage::getUrl('billmatecheckout/index/updateshippingmethod',array('_secure' => true)); ?>";
-    var CREATE_ORDER_URL = "<?php echo Mage::getUrl('billmatecheckout/index/createorder',array('_secure' => true)); ?>";
-    var UPDATE_TOTALS_URL = "<?php echo Mage::getUrl('billmatecheckout/index/updatetotals',array('_secure' => true)); ?>";
-    var UPDATE_DISCOUNT_URL = "<?php echo Mage::getUrl('billmatecheckout/index/setdiscount',array('_secure' => true)); ?>";
-    var CHECKOUT_URL = "<?php echo Mage::getUrl('billmatecheckout/index/index',array('_secure' => true)); ?>"
-</script>
 <div id="checkout-loader">
     <div class="img-loader"></div>
 </div>
@@ -27,4 +18,9 @@ $bmIframeUrl = $this->getBmIframeUrl();
     <div class="billmateoverlay"></div>
     <div class="billmateloading"></div>
 </div>
+<script>
+    jQuery(document).ready(function() {
+        var b_iframe = BillmateIframe.init(<?php echo $this->getJsConfig() ?>);
+    });
+</script>
 
