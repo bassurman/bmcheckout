@@ -19,7 +19,7 @@ $bmIframeUrl = $this->getBmIframeUrl();
     <div class="billmateloading"></div>
 </div>
 <script>
-    jQuery(document).ready(function() {
+    jQuery(window).load(function() {
         var b_iframe = BillmateIframe.init(<?php echo $this->getJsConfig() ?>);
     });
 </script>

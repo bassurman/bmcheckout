@@ -17,16 +17,19 @@ var BillmateIframe = new function() {
             eventOrigin: 'https://checkout.billmate.se',
         }, options );
         self.config = settings;
-        self.initListeners();
+        self.skipUpdate = false;
+        self.initIFrameListener();
+        self.initDomListeners();
+    };
+
+    this.initDomListeners = function() {
         self.initQtyChangeListener();
         self.initCouponeFormListener();
         self.initUpdateShippingListener();
     };
 
-    this.initListeners = function () {
-        document.observe('dom:loaded',function () {
-            window.addEventListener("message", self.handleEvent);
-        });
+    this.initIFrameListener = function () {
+        window.addEventListener("message", self.handleEvent);
     };
 
     this.initQtyChangeListener = function() {
@@ -69,7 +72,7 @@ var BillmateIframe = new function() {
     };
 
     this.initUpdateShippingListener = function() {
-        jQuery(self.config.estimateMethodSelector).on('change', function() {
+        jQuery('body').on('change', self.config.estimateMethodSelector, function() {
             var method_code = jQuery(this).val();
             var requestData = {
                 estimate_method: method_code
@@ -91,8 +94,11 @@ var BillmateIframe = new function() {
                 }
             },
             complete: function () {
-                self.update();
+                if (!self.skipUpdate) {
+                    self.update();
+                }
                 self.unlock();
+                self.skipUpdate = false;
             }
         });
     };
@@ -167,6 +173,7 @@ var BillmateIframe = new function() {
             self.childWindow = json.source;
             switch (json.event) {
                 case 'address_selected':
+                    self.skipUpdate = true;
                     self.sendRequest(
                         self.config.address_url,
                         json.data,
