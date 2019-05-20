@@ -3,6 +3,10 @@ class Billmate_Checkout_Model_Payment_GatewayCore extends Varien_Object
 {
     const METHOD_CODE = 1;
 
+    const DEFAULT_COUNTRY = 'SE';
+
+    const DEFAULT_LANGUAGE = 'sv';
+
     /**
      * @var Billmate_Checkout_Helper_Data
      */
@@ -82,10 +86,10 @@ class Billmate_Checkout_Model_Payment_GatewayCore extends Varien_Object
         return [
             'method'       => static::METHOD_CODE,
             'currency'     => $currentCurrencyCode,
-            'country'      => $storeCountryIso2,
+            'country'      => self::DEFAULT_COUNTRY,
             'orderid' => ($quote->getReservedOrderId()) ? $quote->getReservedOrderId() : (string)time(),
             'autoactivate' => 0,
-            'language'     => BillmateCountry::fromLocale( $storeLanguage ),
+            'language'     => self::DEFAULT_LANGUAGE,
             'logo' => (strlen(Mage::getStoreConfig('billmate/settings/logo')) > 0) ? Mage::getStoreConfig('billmate/settings/logo') : ''
         ];
     }
